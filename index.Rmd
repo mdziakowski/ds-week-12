@@ -24,12 +24,22 @@ bezirke <- st_read("shp-bezirke/bezirke_berlin.shp")
 Graph
 ======
 
+Column {data-width=100}
+-----------------------------------------------------------------------
+
+### Call-outs
+```{r}
+valueBox(nrow(unfaelle), icon = "fa-bicycle")
+
+```
+
 Column {data-width=500}
 -----------------------------------------------------------------------
 
 ### Accident Locations
 
 ```{r}
+
 # 1. Plot the dots themselves
 tmap_mode("view") # tmap_mode("plot")
 #tm_basemap("OpenStreetMap.DE") +
