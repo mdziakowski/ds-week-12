@@ -2,8 +2,7 @@
 title: "2. Project"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: row
-    vertical_layout: fill
+    orientation: rows
 ---
 
 ```{r setup, include=FALSE}
@@ -26,7 +25,7 @@ bezirke <- st_read("shp-bezirke/bezirke_berlin.shp")
 Berlin-Network
 ======
 
-Column {data-width=5}
+Row 
 -----------------------------------------------------------------------
 
 ### edges
@@ -39,28 +38,28 @@ valueBox(86785, icon = "fa-road")
 valueBox(36954, icon = "fa-circle")
 ```
 
-Column {data-width=500}
+Row 
 -----------------------------------------------------------------------
 
 ### Berlin centrality
 
-Shows the centrality of the Berlin network with weight = length.
+Shows the centrality of the Berlin network with weight = length, filtered by used streets over 20*10^6.
 
 ```{r}
 
-#with_centrality <- as_sfnetwork(berlinstraßen) %>%
-#  activate(edges) %>%
-#  mutate(centrality = centrality_edge_betweenness()) %>%
-#  filter(centrality > 20000000)
+with_centrality <- as_sfnetwork(berlinstraßen) %>%
+  activate(edges) %>%
+  mutate(centrality = centrality_edge_betweenness()) %>%
+  filter(centrality > 20000000)
 
-#tm_shape(st_as_sf(with_centrality, "edges")) + 
-#  tm_lines(col = "centrality", size = "centrality", scale = 3)
+tm_shape(st_as_sf(with_centrality, "edges")) + 
+  tm_lines(col = "centrality", size = "centrality", scale = 3)
 
 ```
 
 ### Berlin counts
 
-Shows the usage of the Berlin network from the open-Berlin-scenario.
+Shows the usage of the Berlin network from the open-Berlin-scenario, filtered by streets over 20.000 vehicles a day .
 
 ```{r}
 
@@ -74,25 +73,26 @@ tm_shape(berlinstraßen_count) +
 
 ### Berlin centrality with time
 
-Shows the centrality of the Berlin network with weight = length/speed.
+Shows the centrality of the Berlin network with weight = length/speed, filtered by used streets over 20*10^6.
 
 ```{r}
 
-#berlinstraßen$speed <- as.numeric(berlinstraßen$speed)
-#berlinstraßen$length <- as.numeric(berlinstraßen$length)
+berlinstraßen$speed <- as.numeric(berlinstraßen$speed)
+berlinstraßen$length <- as.numeric(berlinstraßen$length)
 
-#with_centrality_speed <- as_sfnetwork(berlinstraßen) %>%
-#  activate(edges) %>%
-#  mutate(centrality = centrality_edge_betweenness(weights = length/speed)) %>%
-# filter(centrality > 50000000)
+with_centrality_speed <- as_sfnetwork(berlinstraßen) %>%
+  activate(edges) %>%
+  mutate(centrality = centrality_edge_betweenness(weights = length/speed)) %>%
+  filter(centrality > 20000000)
 
-#tm_shape(st_as_sf(with_centrality_speed, "edges")) + 
-#  tm_lines(col = "centrality", size = "centrality", scale = 3)
+tm_shape(st_as_sf(with_centrality_speed, "edges")) + 
+  tm_lines(col = "centrality", size = "centrality", scale = 3)
 ```
 
-
-Column {data-height = 100}
+Row {data-height=30}
 -----------------------------------------------------------------------
+
+### Notes:
 
 1. The data used can be found at: <https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/berlin/berlin-v5.5-10pct/>.
 2. The calculation was carried out with the entire data set, but the network was filtered for the visualization.
@@ -100,7 +100,7 @@ Column {data-height = 100}
 Accidents 
 ==========
 
-Column {data-width=800}
+Row 
 -----------------------------------------------------------------------
 
 ### accident rate
