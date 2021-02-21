@@ -20,4 +20,7 @@ accident_summary <- joined_data %>%
   summarize(num_accidents=sum(costs))
 
 tm_shape(accident_summary) +
-  tm_polygons(col = "num_accidents", title = "Costs for each District per year in million Euro")
+  tm_polygons(col = "num_accidents", title = "accident costs in millions per year") +
+  tm_text("num_accidents", size = 0.9)
+
+          

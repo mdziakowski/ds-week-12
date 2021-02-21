@@ -6,6 +6,8 @@ library(tidyverse)
 library(sf)
 library(tmap)
 
+tmap_mode("view")
+
 berlinstraßen <- st_read("edge_berlin3.csv", crs = 31468)
 berlinstraßen$count <- as.numeric(berlinstraßen$count)
 berlinstraßen$length <- as.numeric(berlinstraßen$length)
@@ -19,12 +21,10 @@ acc <- read.csv("acc.csv")
 
 berlinstraßen_acc <- left_join(berlinstraßen, acc, by = "id")
 berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na(acc))
-berlinstraßen_acc <- mutate(berlinstraßen_acc, acc_rate = (1000000*acc)/(365*count*length))
-berlinstraßen_acc$acc_rate <- as.numeric(berlinstraßen_acc$acc_rate)
-berlinstraßen_acc <- filter(berlinstraßen_acc, acc_rate > 0)
-berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na(acc_rate))
+berlinstraßen_acc <- mutate(berlinstraßen_acc, "accident rate" = (1000000*acc)/(365*count*length))
+berlinstraßen_acc$"accident rate" <- as.numeric(berlinstraßen_acc$"accident rate")
+berlinstraßen_acc <- filter(berlinstraßen_acc, "accident rate" > 0)
+berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na("accident rate"))
 
 tm_shape(berlinstraßen_acc) +
-  tm_lines(col = "acc_rate", scale = 3)
-
-berlinstraßen_acc
+  tm_lines(col = "accident rate", scale = 3, breaks = c(0,0.25,0.5,1,2,5,10))

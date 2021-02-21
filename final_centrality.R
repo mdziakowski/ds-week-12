@@ -6,6 +6,8 @@ library(tidyverse)
 library(sf)
 library(tmap)
 
+tmap_mode("view")
+
 berlinstraﬂen <- st_read("edge_berlin3.csv", crs = 31468)
 
 with_centrality <- as_sfnetwork(berlinstraﬂen) %>%
@@ -14,4 +16,4 @@ with_centrality <- as_sfnetwork(berlinstraﬂen) %>%
   filter(centrality > 20000000)
 
 tm_shape(st_as_sf(with_centrality, "edges")) + 
-  tm_lines(col = "centrality", size = "centrality", scale = 3)
+  tm_lines(col = "centrality", size = "centrality", scale = 3, style = "sd")

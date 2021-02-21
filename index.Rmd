@@ -38,6 +38,11 @@ valueBox(86785, icon = "fa-road")
 valueBox(36954, icon = "fa-circle")
 ```
 
+### edges per node
+```{r}
+gauge(2.35, min = 1, max = 6)
+```
+
 Row 
 -----------------------------------------------------------------------
 
@@ -53,7 +58,7 @@ with_centrality <- as_sfnetwork(berlinstraßen) %>%
   filter(centrality > 20000000)
 
 tm_shape(st_as_sf(with_centrality, "edges")) + 
-  tm_lines(col = "centrality", size = "centrality", scale = 3)
+  tm_lines(col = "centrality", size = "centrality", scale = 3,breaks = c(20000000,40000000,60000000,80000000,100000000,120000000))
 
 ```
 
@@ -67,7 +72,7 @@ berlinstraßen$count <- as.numeric(berlinstraßen$count)
 berlinstraßen_count <- filter(berlinstraßen, count > 20000)
 
 tm_shape(berlinstraßen_count) +
-  tm_lines(col = "count", scale = 3)
+  tm_lines(col = "count", scale = 3,breaks = c(20000,40000,60000,80000,100000,120000))
 
 ```
 
@@ -86,7 +91,7 @@ with_centrality_speed <- as_sfnetwork(berlinstraßen) %>%
   filter(centrality > 20000000)
 
 tm_shape(st_as_sf(with_centrality_speed, "edges")) + 
-  tm_lines(col = "centrality", size = "centrality", scale = 3)
+  tm_lines(col = "centrality", size = "centrality", scale = 3, breaks = c(20000000,40000000,60000000,80000000,100000000,250000000))
 ```
 
 Row {data-height=30}
@@ -116,13 +121,13 @@ unfaellepoint <- st_transform(unfaellepoint, crs = 31468)
 
 berlinstraßen_acc <- left_join(berlinstraßen, acc, by = "id")
 berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na(acc))
-berlinstraßen_acc <- mutate(berlinstraßen_acc, acc_rate = (1000000*acc)/(365*count*length))
-berlinstraßen_acc$acc_rate <- as.numeric(berlinstraßen_acc$acc_rate)
-berlinstraßen_acc <- filter(berlinstraßen_acc, acc_rate > 0)
-berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na(acc_rate))
+berlinstraßen_acc <- mutate(berlinstraßen_acc, "accident rate" = (1000000*acc)/(365*count*length))
+berlinstraßen_acc$"accident rate" <- as.numeric(berlinstraßen_acc$"accident rate")
+berlinstraßen_acc <- filter(berlinstraßen_acc, "accident rate" > 0)
+berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na("accident rate"))
 
 tm_shape(berlinstraßen_acc) +
-  tm_lines(col = "acc_rate", scale = 3)
+  tm_lines(col = "accident rate", scale = 3, breaks = c(0,0.25,0.5,1,2,5,10))
 
 ```
 
@@ -143,6 +148,7 @@ accident_summary <- joined_data %>%
   summarize(num_accidents=sum(costs))
 
 tm_shape(accident_summary) +
-  tm_polygons(col = "num_accidents", title = "Costs for each District per year in million Euro")
+  tm_polygons(col = "num_accidents", title = "accident costs in millions per year") +
+  tm_text("num_accidents", size = 0.9)
 
 ```
