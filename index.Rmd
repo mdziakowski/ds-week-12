@@ -1,5 +1,5 @@
 ---
-title: "Accident data in Berlin, 2019"
+title: "2. Project"
 output: 
   flexdashboard::flex_dashboard:
     orientation: row
@@ -11,25 +11,22 @@ library(flexdashboard)
 library(sf)
 library(tidyverse)
 library(tmap)
-# 2019 accident data
-raw_unfaelle <- read_csv2("unfaelle.csv", locale=locale(encoding="latin1"))
 
-# Create sf object from X/Y coord columns. Lon/Lat is EPSG:4326
-unfaelle <- st_as_sf(raw_unfaelle, coords=c("XGCSWGS84","YGCSWGS84"), crs=4326)
+berlinstraßen <- st_read("edge_berlin3.csv", crs = 31468)
+berlin_network <- as_sfnetwork(berlinstraßen)
 
-# Berlin neighborhoods
-bezirke <- st_read("shp-bezirke/bezirke_berlin.shp")
 ```
 
-Graph
+Berlin-Network
 ======
 
 Column {data-width=100}
 -----------------------------------------------------------------------
 
-### Call-outs
+### network data
 ```{r}
-valueBox(nrow(unfaelle), icon = "fa-bicycle")
+valueBox(86785, icon = "fa-bicycle")
+valueBox(173570, icon = "fa-bicycle")
 
 ```
 

@@ -9,9 +9,11 @@ library(tmap)
 bezirke <- st_read("bezirke/bezirksgrenzen.shp")
 bezirke <- st_transform(bezirke,crs =  4326)
 
-mittesf <- st_read("edge_berlin2.csv", crs = 31468)
+mittesf <- st_read("edge_berlin3.csv", crs = 31468)
 mittesf$count <- as.numeric(mittesf$count)
 mittesf$cap <- as.numeric(mittesf$cap)
+mittesf$speed <- as.numeric(mittesf$speed)
+mittesf$length <- as.numeric(mittesf$length)
 
 berlinstraßen <- mittesf %>%
   filter(cap > 1200.0)
@@ -29,9 +31,6 @@ tm_shape(bezirke) +
 
 berlinstraßen
 
-berlinstraßen_cen <- as_sfnetwork(with_centrality) %>%
-  activate(edges) %>%
-  filter(centrality > 20000000)
   
 berlinstraßen_count <- filter(berlinstraßen, count > 20000)
 
@@ -65,4 +64,16 @@ berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na(acc))
 berlinstraßen_acc
 tm_shape(berlinstraßen_acc) + 
   tm_lines(col = "acc", scale = 5)
+
+berlinstraßen
+
+with_centrality_speed <- as_sfnetwork(berlinstraßen) %>%
+  activate(edges) %>%
+  mutate(centrality = centrality_edge_betweenness(weights = length/speed)) %>%
+  filter(centrality > 50000000)
+
+tmap_options(basemaps = NULL )
+
+tm_shape(st_as_sf(with_centrality_speed, "edges")) + 
+  tm_lines(col = "centrality", size = "centrality", scale = 3)
 
