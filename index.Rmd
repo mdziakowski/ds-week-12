@@ -8,78 +8,141 @@ output:
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
-library(sf)
+library(tidygraph)
+library(sfnetworks)
 library(tidyverse)
+library(sf)
 library(tmap)
 
+tmap_mode("view")
+
 berlinstraßen <- st_read("edge_berlin3.csv", crs = 31468)
-berlin_network <- as_sfnetwork(berlinstraßen)
+acc <- read.csv("acc.csv")
+unfaelle <- read.csv2("Unfaelle.csv")
+bezirke <- st_read("shp-bezirke/bezirke_berlin.shp")
 
 ```
 
 Berlin-Network
 ======
 
-Column {data-width=100}
+Column {data-width=5}
 -----------------------------------------------------------------------
 
-### network data
+### edges
 ```{r}
-valueBox(86785, icon = "fa-bicycle")
-valueBox(173570, icon = "fa-bicycle")
+valueBox(86785, icon = "fa-road")
+```
 
+### nodes
+```{r}
+valueBox(36954, icon = "fa-circle")
 ```
 
 Column {data-width=500}
 -----------------------------------------------------------------------
 
-### Accident Locations
+### Berlin centrality
+
+Shows the centrality of the Berlin network with weight = length.
 
 ```{r}
 
-# 1. Plot the dots themselves
-tmap_mode("view") # tmap_mode("plot")
-#tm_basemap("OpenStreetMap.DE") +
+#with_centrality <- as_sfnetwork(berlinstraßen) %>%
+#  activate(edges) %>%
+#  mutate(centrality = centrality_edge_betweenness()) %>%
+#  filter(centrality > 20000000)
 
-unfaelle <- mutate(unfaelle, bike_related=IstRad==1)
+#tm_shape(st_as_sf(with_centrality, "edges")) + 
+#  tm_lines(col = "centrality", size = "centrality", scale = 3)
 
-tm_shape(bezirke) +
-  tm_polygons() +
-  tm_shape(unfaelle) +
-  tm_dots(size=0.01, col="bike_related", title="2019 Accidents: Bike-related?")
 ```
 
-> Source data from: <https://mdziakowski.github.io/ds-week-12/>
+### Berlin counts
 
-### My pretty Chart B
+Shows the usage of the Berlin network from the open-Berlin-scenario.
 
 ```{r}
-unfaelle <- st_transform(unfaelle, crs=25833)
-bezirke <- st_transform(bezirke, crs=25833)
 
-joined_data <- st_join(bezirke, unfaelle["IstRad"])
+berlinstraßen$count <- as.numeric(berlinstraßen$count)
+berlinstraßen_count <- filter(berlinstraßen, count > 20000)
+
+tm_shape(berlinstraßen_count) +
+  tm_lines(col = "count", scale = 3)
+
+```
+
+### Berlin centrality with time
+
+Shows the centrality of the Berlin network with weight = length/speed.
+
+```{r}
+
+#berlinstraßen$speed <- as.numeric(berlinstraßen$speed)
+#berlinstraßen$length <- as.numeric(berlinstraßen$length)
+
+#with_centrality_speed <- as_sfnetwork(berlinstraßen) %>%
+#  activate(edges) %>%
+#  mutate(centrality = centrality_edge_betweenness(weights = length/speed)) %>%
+# filter(centrality > 50000000)
+
+#tm_shape(st_as_sf(with_centrality_speed, "edges")) + 
+#  tm_lines(col = "centrality", size = "centrality", scale = 3)
+```
+
+
+Column {data-height = 100}
+-----------------------------------------------------------------------
+
+1. The data used can be found at: <https://svn.vsp.tu-berlin.de/repos/public-svn/matsim/scenarios/countries/de/berlin/berlin-v5.5-10pct/>.
+2. The calculation was carried out with the entire data set, but the network was filtered for the visualization.
+
+Accidents 
+==========
+
+Column {data-width=800}
+-----------------------------------------------------------------------
+
+### accident rate
+
+```{r}
+
+berlinstraßen$count <- as.numeric(berlinstraßen$count)
+berlinstraßen$length <- as.numeric(berlinstraßen$length)
+berlinstraßen$id <- as.numeric(berlinstraßen$id)
+
+unfaellepoint <- st_as_sf(unfaelle, coords = c("XGCSWGS84", "YGCSWGS84"), crs = 4326)
+unfaellepoint <- st_transform(unfaellepoint, crs = 31468)
+
+berlinstraßen_acc <- left_join(berlinstraßen, acc, by = "id")
+berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na(acc))
+berlinstraßen_acc <- mutate(berlinstraßen_acc, acc_rate = (1000000*acc)/(365*count*length))
+berlinstraßen_acc$acc_rate <- as.numeric(berlinstraßen_acc$acc_rate)
+berlinstraßen_acc <- filter(berlinstraßen_acc, acc_rate > 0)
+berlinstraßen_acc <- filter(berlinstraßen_acc, !is.na(acc_rate))
+
+tm_shape(berlinstraßen_acc) +
+  tm_lines(col = "acc_rate", scale = 3)
+
+```
+
+### costs per neighborhoood, 2019
+
+```{r}
+
+unfaellepoint <- st_as_sf(unfaelle, coords = c("XGCSWGS84", "YGCSWGS84"), crs = 4326)
+
+bezirke <- st_transform(bezirke,crs =  4326)
+
+unfaellepoint <- mutate(unfaellepoint, costs = if_else("UKATEGORIE"==1,1035165,if_else("UKATEGORIE"==2,110506,4403)) )
+
+joined_data <- st_join(bezirke, unfaellepoint)
 
 accident_summary <- joined_data %>%
   group_by(SCHLUESSEL) %>%
-  summarize(num_accidents=n())
+  summarize(num_accidents=sum(costs))
 
-tm_shape(bezirke) +
-  tm_polygons() +
-  tm_shape(accident_summary) +
-  tm_dots(size="num_accidents", col="num_accidents", title="Collisions by Neighborhood, 2019")
+tm_shape(accident_summary) +
+  tm_polygons(col = "num_accidents", title = "Costs for each District per year in million Euro")
 
 ```
-
-Column {data-width=100}
------------------------------------------------------------------------
-
-### Neigbhorhood summary data
-
-```{r}
-knitr::kable(accident_summary)
-```
-
-Discussion
-==========
-
-Data
