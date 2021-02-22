@@ -52,9 +52,11 @@ Shows the centrality of the Berlin network with weight = length, filtered by use
 
 ```{r}
 
+berlinstraßen$length <- as.numeric(berlinstraßen$length)
+
 with_centrality <- as_sfnetwork(berlinstraßen) %>%
   activate(edges) %>%
-  mutate(centrality = centrality_edge_betweenness()) %>%
+  mutate(centrality = centrality_edge_betweenness(weights = length)) %>%
   filter(centrality > 20000000)
 
 tm_shape(st_as_sf(with_centrality, "edges")) + 
