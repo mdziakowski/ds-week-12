@@ -152,3 +152,10 @@ tm_shape(accident_summary) +
   tm_text("num_accidents", size = 0.9)
 
 ```
+
+Row {data-height=20}
+-----------------------------------------------------------------------
+
+### source
+
+<https://www.bast.de/BASt_2017/DE/Publikationen/Foko/2011-2010/2010-17.html>
